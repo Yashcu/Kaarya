@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import api from '../api/axiosInstance';
+import { getBoardById, updateBoard } from '../api/boardApi';
 import {
     createList,
     deleteList as deleteListRequest,
@@ -11,7 +11,6 @@ import {
     deleteCard as deleteCardRequest,
     moveCard,
 } from '../api/cardApi';
-import { updateBoard } from '../api/boardApi';
 import { createEmptyFilters, filterListsByBoardFilters } from '../utils/boardFilters';
 import { normalizeBoard } from '../utils/boardNormalization';
 
@@ -40,17 +39,22 @@ const useBoardStore = create((set, get) => ({
         set({ isLoading: true, error: null });
 
         try {
-            const board = normalizeBoard(await api.get(`/api/boards/${boardId}`));
+            const board = normalizeBoard(await getBoardById(boardId));
 
             set({
                 board,
                 isLoading: false
             });
+
+            return { ok: true, board };
         } catch (err) {
+            const status = err?.status ?? null;
             set({
-                error: err || "Failed to fetch board",
+                error: status === 404 ? null : err.message || "Failed to fetch board",
                 isLoading: false
             });
+
+            return { ok: false, error: err, status };
         }
     },
 
@@ -58,10 +62,12 @@ const useBoardStore = create((set, get) => ({
         if (!boardId) return;
 
         try {
-            const board = normalizeBoard(await api.get(`/api/boards/${boardId}`));
+            const board = normalizeBoard(await getBoardById(boardId));
             set({ board });
+            return board;
         } catch (err) {
-            set({ error: err || "Failed to refresh board" });
+            set({ error: err.message || "Failed to refresh board" });
+            throw err;
         }
     },
 
@@ -82,8 +88,10 @@ const useBoardStore = create((set, get) => ({
                     lists: [...state.board.lists, normalizedList]
                 }
             }));
+            return normalizedList;
         } catch (err) {
-            set({ error: err || "Failed to create list" });
+            set({ error: err.message || "Failed to create list" });
+            throw err;
         }
     },
 
@@ -97,8 +105,10 @@ const useBoardStore = create((set, get) => ({
                     lists: state.board.lists.filter(l => l.id !== listId)
                 }
             }));
+            return true;
         } catch (err) {
-            set({ error: err || "Failed to delete list" });
+            set({ error: err.message || "Failed to delete list" });
+            throw err;
         }
     },
 
@@ -115,7 +125,7 @@ const useBoardStore = create((set, get) => ({
                 }
             }));
         } catch (err) {
-            set({ error: err || "Failed to update list" });
+            set({ error: err.message || "Failed to update list" });
         }
     },
 
@@ -133,8 +143,10 @@ const useBoardStore = create((set, get) => ({
                     )
                 }
             }));
+            return card;
         } catch (err) {
-            set({ error: err || "Failed to create card" });
+            set({ error: err.message || "Failed to create card" });
+            throw err;
         }
     },
 
@@ -151,14 +163,17 @@ const useBoardStore = create((set, get) => ({
                     }))
                 }
             }));
+            return true;
         } catch (err) {
-            set({ error: err || "Failed to delete card" });
+            set({ error: err.message || "Failed to delete card" });
+            throw err;
         }
     },
 
     updateBoardColor: async (color) => {
         const board = get().board;
         if (!board) return;
+        const previousColor = board.backgroundColor;
 
         set((state) => ({
             board: {
@@ -170,25 +185,33 @@ const useBoardStore = create((set, get) => ({
         try {
             await updateBoard(board.id, { backgroundColor: color });
         } catch (err) {
-            set({ error: err || "Failed to update board color" });
+            set((state) => ({
+                board: state.board
+                    ? { ...state.board, backgroundColor: previousColor }
+                    : state.board,
+                error: err.message || "Failed to update board color",
+            }));
+            throw err;
         }
     },
 
-    moveListLocal: (activeId, overId) => {
+    moveListLocal: (activeId, overId, placement = 'before') => {
         set((state) => {
             const lists = [...(state.board?.lists || [])];
             const oldIndex = lists.findIndex((l) => l.id === activeId);
             if (oldIndex === -1) return state;
 
-            let insertIndex;
-            if (!overId) {
-                insertIndex = lists.length - 1;
-            } else {
-                const overIndex = lists.findIndex((l) => l.id === overId);
-                if (overIndex === -1 || activeId === overId) return state;
+            const overIndex = lists.findIndex((l) => l.id === overId);
+            if (overIndex === -1 || activeId === overId) return state;
 
-                insertIndex = oldIndex < overIndex ? overIndex - 1 : overIndex;
-            }
+            const insertIndex =
+                placement === 'after'
+                    ? oldIndex < overIndex
+                        ? overIndex
+                        : overIndex + 1
+                    : oldIndex < overIndex
+                        ? overIndex - 1
+                        : overIndex;
 
             const [moved] = lists.splice(oldIndex, 1);
             lists.splice(insertIndex, 0, moved);
@@ -254,7 +277,8 @@ const useBoardStore = create((set, get) => ({
         try {
             await reorderLists({ listId, newPosition });
         } catch (err) {
-            set({ error: err || "Failed to reorder lists" });
+            set({ error: err.message || "Failed to reorder lists" });
+            throw err;
         }
     },
 
@@ -262,7 +286,8 @@ const useBoardStore = create((set, get) => ({
         try {
             await moveCard(data);
         } catch (err) {
-            set({ error: err || "Failed to move card" });
+            set({ error: err.message || "Failed to move card" });
+            throw err;
         }
     },
 

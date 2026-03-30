@@ -8,23 +8,23 @@ export function emitBoardDragState(active, clientX = 0) {
     );
 }
 
-export function getListMovePlan({ lists, activeId, overId }) {
+export function getListMovePlan({ lists, activeId, overId, placement = 'before' }) {
     const sourceIndex = lists.findIndex((list) => list.id === activeId);
     if (sourceIndex === -1) return null;
 
-    let finalIndex;
-    let newPosition;
+    const overIndex = lists.findIndex((list) => list.id === overId);
+    if (overIndex === -1 || activeId === overId) return null;
 
-    if (!overId) {
-        finalIndex = lists.length - 1;
-        newPosition = lists.length;
-    } else {
-        const overIndex = lists.findIndex((list) => list.id === overId);
-        if (overIndex === -1 || activeId === overId) return null;
+    const finalIndex =
+        placement === 'after'
+            ? sourceIndex < overIndex
+                ? overIndex
+                : overIndex + 1
+            : sourceIndex < overIndex
+                ? overIndex - 1
+                : overIndex;
 
-        finalIndex = sourceIndex < overIndex ? overIndex - 1 : overIndex;
-        newPosition = finalIndex + 1;
-    }
+    const newPosition = finalIndex + 1;
 
     if (sourceIndex === finalIndex) return null;
 

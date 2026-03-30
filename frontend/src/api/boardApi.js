@@ -1,21 +1,26 @@
 import api from './axiosInstance';
 
 export const createBoard = async (data) => {
-    return await api.post('/api/boards', data);
+    const response = await api.post('/api/boards', data);
+    return response.data;
 };
 
 export const deleteBoard = async (id) => {
-    return await api.delete(`/api/boards/${id}`);
+    const response = await api.delete(`/api/boards/${id}`);
+    return response.message;
 };
 
 export const getBoardById = async (id) => {
-    return await api.get(`/api/boards/${id}`);
+    const response = await api.get(`/api/boards/${id}`);
+    return response.data;
 };
 
 export const updateBoard = async (id, data) => {
-    return await api.patch(`/api/boards/${id}`, data);
+    const response = await api.patch(`/api/boards/${id}`, data);
+    return response.data;
 };
 
 export const getAllBoards = async () => {
-    return await api.get('/api/boards');
+    const response = await api.get('/api/boards');
+    return response.data;
 };

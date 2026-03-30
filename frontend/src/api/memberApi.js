@@ -1,5 +1,6 @@
 import api from './axiosInstance';
 
 export const getAllMembers = async () => {
-    return await api.get('/api/cards/members');
+    const response = await api.get('/api/cards/members');
+    return response.data;
 };

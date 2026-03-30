@@ -5,16 +5,23 @@ const api = axios.create({
     headers: { 'Content-Type': 'application/json' },
 });
 
-api.interceptors.response.use(
-    (res) => res.data.data,
-    (err) => {
-        const message =
-            err.response?.data?.message ||
-            err.message ||
-            "Something went wrong";
+function toApiError(err) {
+    const message =
+        err.response?.data?.message ||
+        err.message ||
+        'Something went wrong';
 
-        return Promise.reject(message);
-    }
+    const apiError = new Error(message);
+    apiError.status = err.response?.status ?? null;
+    apiError.errors = err.response?.data?.errors ?? [];
+    apiError.data = err.response?.data ?? null;
+
+    return apiError;
+}
+
+api.interceptors.response.use(
+    (res) => res.data,
+    (err) => Promise.reject(toApiError(err))
 );
 
 export default api;
