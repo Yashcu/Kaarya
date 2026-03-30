@@ -6,10 +6,10 @@ import ColdStartPage from './pages/ColdStartPage';
 import HomeBootstrap from './pages/HomeBootstrap';
 
 function App() {
-    const { isReady, attempt, hasShownColdStart, error } = useBackendWakeup();
+    const { isReady, hasShownColdStart, error } = useBackendWakeup();
 
     if (!isReady && hasShownColdStart) {
-        return <ColdStartPage attempt={attempt} error={error} />;
+        return <ColdStartPage error={error} />;
     }
 
     return (
