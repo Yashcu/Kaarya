@@ -1,6 +1,7 @@
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
+const compression = require("compression");
 
 const errorHandler = require("./middleware/errorHandler");
 
@@ -10,14 +11,31 @@ const listRoutes = require("./routes/lists");
 const cardRoutes = require("./routes/cards");
 
 const app = express();
+const corsOrigin = process.env.CORS_ORIGIN || 'http://localhost:5173';
 
 if (!process.env.DATABASE_URL) {
     console.error("DATABASE_URL is missing");
     process.exit(1);
 }
 
-app.use(cors());
+// Production middlewares
+app.use(compression());
+app.use(cors({
+    origin: corsOrigin,
+}));
 app.use(express.json());
+
+// Request logging (only in development or when DEBUG=true)
+if (process.env.DEBUG === 'true' || process.env.NODE_ENV !== 'production') {
+    app.use((req, res, next) => {
+        const start = Date.now();
+        res.on('finish', () => {
+            const duration = Date.now() - start;
+            console.log(`${req.method} ${req.originalUrl} - ${res.statusCode} - ${duration}ms`);
+        });
+        next();
+    });
+}
 
 app.get('/ok', (req, res) => {
     res.json({ message: 'Server is fine !' });
