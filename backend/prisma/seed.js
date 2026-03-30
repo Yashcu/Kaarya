@@ -36,7 +36,7 @@ async function main() {
   const [aarav, neha, kabir, priya, rahul] = members;
 
   console.log('Creating sample board...');
-  const boardId = 'cmnak7ro40000cducgl458ey2';
+  const boardId = 'cmnak7ro40000cducgl458ey1';
 
   const board = await prisma.board.create({
     data: {
