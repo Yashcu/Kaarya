@@ -1,0 +1,117 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Board {
+  id              String   @id @default(cuid())
+  title           String
+  backgroundColor String   @default("#0079BF")
+  isArchived      Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  lists   List[]
+  members BoardMember[]
+}
+
+model List {
+  id         String   @id @default(cuid())
+  title      String
+  position   Int
+  isArchived Boolean  @default(false)
+  boardId    String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  board Board  @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  cards Card[]
+
+  @@index([boardId])
+  @@unique([boardId, position])
+}
+
+model Card {
+  id          String    @id @default(cuid())
+  title       String
+  description String?
+  position    Int
+  dueDate     DateTime?
+  isArchived  Boolean   @default(false)
+  listId      String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  list       List           @relation(fields: [listId], references: [id], onDelete: Cascade)
+  labels     Label[]
+  checklists Checklist[]
+  members    CardMember[]
+
+  @@index([listId])
+  @@index([dueDate])
+  @@index([isArchived])
+  @@unique([listId, position])
+}
+
+model Label {
+  id      String @id @default(cuid())
+  name    String
+  color   String
+  cardId  String
+
+  card Card @relation(fields: [cardId], references: [id], onDelete: Cascade)
+
+  @@index([cardId])
+}
+
+model Checklist {
+  id        String   @id @default(cuid())
+  title     String
+  cardId    String
+  createdAt DateTime @default(now())
+
+  card  Card            @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  items ChecklistItem[]
+}
+
+model ChecklistItem {
+  id          String  @id @default(cuid())
+  text        String
+  isCompleted Boolean @default(false)
+  checklistId String
+
+  checklist Checklist @relation(fields: [checklistId], references: [id], onDelete: Cascade)
+}
+
+model Member {
+  id          String @id @default(cuid())
+  name        String
+  avatarColor String
+
+  boards BoardMember[]
+  cards  CardMember[]
+}
+
+model BoardMember {
+  boardId  String
+  memberId String
+
+  board  Board  @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  member Member @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  @@id([boardId, memberId])
+}
+
+model CardMember {
+  cardId   String
+  memberId String
+
+  card   Card   @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  member Member @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  @@id([cardId, memberId])
+}
