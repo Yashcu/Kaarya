@@ -1,16 +1,19 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
+import { ToastProvider } from '@/shared/components/ui/toast';
 import BoardPage from './pages/BoardPage';
-import HomeBootstrap from './components/bootstrap/HomeBootstrap';
+import HomeBootstrap from './pages/HomeBootstrap';
 
 function App() {
     return (
-        <BrowserRouter>
-            <Routes>
-                <Route path="/" element={<HomeBootstrap />} />
-                <Route path="/b/:boardId" element={<BoardPage />} />
-                <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
-        </BrowserRouter>
+        <ToastProvider>
+            <BrowserRouter>
+                <Routes>
+                    <Route path="/" element={<HomeBootstrap />} />
+                    <Route path="/b/:boardId" element={<BoardPage />} />
+                    <Route path="*" element={<Navigate to="/" replace />} />
+                </Routes>
+            </BrowserRouter>
+        </ToastProvider>
     );
 }
 
