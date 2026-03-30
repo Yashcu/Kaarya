@@ -14,6 +14,7 @@ router.post('/:id/members', controller.addMemberToCard);
 router.delete('/:id/members/:memberId', controller.removeMemberFromCard);
 
 router.post('/:id/checklists', controller.createChecklist);
+router.delete('/:id/checklists', controller.deleteChecklist);
 router.post('/checklists/items', controller.addChecklistItem);
 router.patch('/checklists/items/:itemId', controller.updateChecklistItem);
 router.delete('/checklists/items/:itemId', controller.deleteChecklistItem);

@@ -1,15 +1,45 @@
-const prisma = require('../lib/prisma');
+const prisma = require('../../lib/prisma');
+const cache = require('../../lib/cache');
+
+const CACHE_TTL = 30; // seconds
+
+function invalidateBoardCache(boardId) {
+    if (!boardId) return;
+
+    cache.del(`board:${boardId}`);
+}
+
+function invalidateBoardsListCache() {
+    cache.del('boards:all');
+}
 
 async function getAllBoards() {
-    return prisma.board.findMany({
+    const cacheKey = 'boards:all';
+
+    const cached = cache.get(cacheKey);
+    if (cached) {
+        return cached;
+    }
+
+    const boards = await prisma.board.findMany({
         where: { isArchived: false },
         orderBy: { createdAt: 'desc' },
     });
+
+    cache.set(cacheKey, boards, CACHE_TTL);
+    return boards;
 }
 
 async function getBoardById(id) {
-    return prisma.board.findUnique({
-        where: { id },
+    const cacheKey = `board:${id}`;
+
+    const cached = cache.get(cacheKey);
+    if (cached) {
+        return cached;
+    }
+
+    const board = await prisma.board.findFirst({
+        where: { id, isArchived: false },
         include: {
             lists: {
                 where: { isArchived: false },
@@ -36,30 +66,17 @@ async function getBoardById(id) {
             },
         },
     });
-}
 
-async function createBoard(data) {
-    return prisma.board.create({ data });
-}
+    if (board) {
+        cache.set(cacheKey, board, CACHE_TTL);
+    }
 
-async function updateBoard(id, data) {
-    return prisma.board.update({
-        where: { id },
-        data,
-    });
-}
-
-async function deleteBoard(id) {
-    return prisma.board.update({
-        where: { id },
-        data: { isArchived: true },
-    });
+    return board;
 }
 
 module.exports = {
     getAllBoards,
     getBoardById,
-    createBoard,
-    updateBoard,
-    deleteBoard,
+    invalidateBoardCache,
+    invalidateBoardsListCache,
 };

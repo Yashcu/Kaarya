@@ -30,6 +30,10 @@ const addChecklistSchema = z.object({
     title: z.string().min(1),
 });
 
+const deleteChecklistSchema = z.object({
+    checklistId: z.string().cuid(),
+});
+
 const addChecklistItemSchema = z.object({
     text: z.string().min(1),
     checklistId: z.string().cuid(),
@@ -47,6 +51,7 @@ module.exports = {
     createLabelForCardSchema,
     manageCardMemberSchema,
     addChecklistSchema,
+    deleteChecklistSchema,
     addChecklistItemSchema,
     updateChecklistItemSchema,
 };

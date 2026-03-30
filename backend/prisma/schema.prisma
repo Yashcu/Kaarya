@@ -17,6 +17,8 @@ model Board {
 
   lists   List[]
   members BoardMember[]
+
+  @@index([isArchived])
 }
 
 model List {
@@ -32,7 +34,7 @@ model List {
   cards Card[]
 
   @@index([boardId])
-  @@unique([boardId, position])
+  @@index([boardId, isArchived])
 }
 
 model Card {
@@ -52,9 +54,9 @@ model Card {
   members    CardMember[]
 
   @@index([listId])
+  @@index([listId, position])
   @@index([dueDate])
   @@index([isArchived])
-  @@unique([listId, position])
 }
 
 model Label {

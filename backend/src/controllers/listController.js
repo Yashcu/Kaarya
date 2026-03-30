@@ -1,6 +1,6 @@
 const asyncHandler = require('express-async-handler');
 const { createListSchema } = require('../schemas/listSchemas');
-const listService = require('../services/listService');
+const listService = require('../services/list');
 
 exports.createList = asyncHandler(async (req, res) => {
     const data = createListSchema.parse(req.body);

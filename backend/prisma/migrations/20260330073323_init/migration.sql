@@ -94,13 +94,22 @@ CREATE TABLE "CardMember" (
 );
 
 -- CreateIndex
+CREATE INDEX "Board_isArchived_idx" ON "Board"("isArchived");
+
+-- CreateIndex
 CREATE INDEX "List_boardId_idx" ON "List"("boardId");
+
+-- CreateIndex
+CREATE INDEX "List_boardId_isArchived_idx" ON "List"("boardId", "isArchived");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "List_boardId_position_key" ON "List"("boardId", "position");
 
 -- CreateIndex
 CREATE INDEX "Card_listId_idx" ON "Card"("listId");
+
+-- CreateIndex
+CREATE INDEX "Card_listId_position_idx" ON "Card"("listId", "position");
 
 -- CreateIndex
 CREATE INDEX "Card_dueDate_idx" ON "Card"("dueDate");

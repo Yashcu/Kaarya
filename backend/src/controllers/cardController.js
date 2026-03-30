@@ -1,5 +1,5 @@
 const asyncHandler = require('express-async-handler');
-const cardService = require('../services/cardService');
+const cardService = require('../services/card');
 const {
   createCardSchema,
   updateCardSchema,
@@ -7,6 +7,7 @@ const {
   createLabelForCardSchema,
   manageCardMemberSchema,
   addChecklistSchema,
+  deleteChecklistSchema,
   addChecklistItemSchema,
   updateChecklistItemSchema,
 } = require('../schemas/cardSchemas');
@@ -22,8 +23,22 @@ exports.getCardById = asyncHandler(async (req, res) => {
 });
 
 exports.getAllMembers = asyncHandler(async (req, res) => {
-  const members = await cardService.getAllMembers();
-  res.json({ success: true, data: members });
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 50;
+  const offset = (page - 1) * limit;
+
+  const result = await cardService.getAllMembers({ limit, offset });
+
+  res.json({
+    success: true,
+    data: result.members,
+    pagination: {
+      page,
+      limit,
+      total: result.total,
+      totalPages: Math.ceil(result.total / limit),
+    },
+  });
 });
 
 exports.createCard = asyncHandler(async (req, res) => {
@@ -89,6 +104,13 @@ exports.createChecklist = asyncHandler(async (req, res) => {
   const checklist = await cardService.createChecklist(req.params.id, title);
 
   res.status(201).json({ success: true, data: checklist });
+});
+
+exports.deleteChecklist = asyncHandler(async (req, res) => {
+  const { checklistId } = deleteChecklistSchema.parse(req.body);
+  await cardService.deleteChecklist(checklistId);
+
+  res.json({ success: true, message: 'Checklist deleted' });
 });
 
 exports.addChecklistItem = asyncHandler(async (req, res) => {

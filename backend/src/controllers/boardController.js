@@ -1,6 +1,6 @@
 const asyncHandler = require('express-async-handler');
 const { createBoardSchema } = require('../schemas/boardSchemas');
-const boardService = require('../services/boardService');
+const boardService = require('../services/board');
 
 exports.getAllBoards = asyncHandler(async (req, res) => {
     const boards = await boardService.getAllBoards();
