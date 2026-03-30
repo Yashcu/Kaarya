@@ -37,6 +37,10 @@ if (process.env.DEBUG === 'true' || process.env.NODE_ENV !== 'production') {
     });
 }
 
+app.get('/health', (req, res) => {
+    res.json({ status: 'ok', message: 'Server is healthy' });
+});
+
 app.get('/ok', (req, res) => {
     res.json({ message: 'Server is fine !' });
 });

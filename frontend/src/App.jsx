@@ -1,9 +1,17 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { ToastProvider } from '@/shared/components/ui/toast';
+import { useBackendWakeup } from './hooks/useBackendWakeup';
 import BoardPage from './pages/BoardPage';
+import ColdStartPage from './pages/ColdStartPage';
 import HomeBootstrap from './pages/HomeBootstrap';
 
 function App() {
+    const { isReady, attempt, hasShownColdStart, error } = useBackendWakeup();
+
+    if (!isReady && hasShownColdStart) {
+        return <ColdStartPage attempt={attempt} error={error} />;
+    }
+
     return (
         <ToastProvider>
             <BrowserRouter>
